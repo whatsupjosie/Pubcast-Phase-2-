@@ -1,0 +1,27 @@
+Changed Files In Latest Round
+Date: 2026-03-26
+
+Source files changed:
+- modules/appconfig.py
+- modules/ollama_provider.py
+- modules/inference.py
+- modules/split_llm.py
+- modules/bots.py
+- main.py
+- docker-compose.yml
+- data/bots/pete.json
+- data/bots/purfluous.json
+- data/bots/jeremy.json
+
+High-level reason for each area:
+- modules/appconfig.py: centralized Studio/Architect model/provider configuration
+- modules/ollama_provider.py: shared Ollama call, unload, and health-check helpers
+- modules/inference.py: split-role inference manager integration
+- modules/split_llm.py: Studio/Architect router and optional Architect adapter
+- modules/bots.py: preserve live Studio/Ollama bot path while using shared model resolution
+- main.py: startup status reporting and split-route inference endpoint inputs
+- docker-compose.yml: explicit Studio/Ollama plus optional Architect runtime settings
+- data/bots/*.json: point live bots at the shared default model and include room "studio"
+
+Packaging step:
+- No source files were changed during zip creation.

@@ -1,0 +1,34 @@
+Model Inventory
+Date: 2026-03-26
+
+Configured model roles:
+- Studio model name: google_gemma-3-1b-it-Q4_K_L
+- Architect model name: google_gemma-3-1b-it-Q6_K
+
+Installed Ollama models:
+- Unverified.
+- Runtime probe to http://localhost:11434 returned: Connection refused
+- Because Ollama was not responding, no trustworthy model list could be retrieved.
+
+GGUF files found inside the source folder used for this bundle:
+- None found.
+- Source scanned: C:\Users\hardc\OneDrive\Documents\Playground\pubcast_current_2026-03-26_auditcopy
+
+GGUF files found in the larger adjacent repo materials during audit:
+- C:\Users\hardc\OneDrive\Desktop\GIT REPOS\PUbcast AI Local Git repo 2\google_gemma-3-1b-it-Q6_K.gguf
+
+Exact configured model paths in code:
+- Studio GGUF path setting: google_gemma-3-1b-it-Q4_K_L.gguf
+- Architect GGUF path setting: google_gemma-3-1b-it-Q6_K.gguf
+- Architect runner command setting: llama-cli
+- Ollama base URL setting: http://localhost:11434
+
+Studio runnable:
+- Not currently proven runnable on this machine in this build state.
+- Reason: Studio depends on Ollama, and the Ollama health probe returned Connection refused.
+- The Studio path is real in code, but runtime availability was not confirmed.
+
+Architect runnable:
+- No.
+- Reason: no direct GGUF runner was found, and no GGUF file was found inside the source build copy.
+- Architect is configured/scaffolded, not proven runnable.

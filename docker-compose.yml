@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  pubcast:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - LLM_PROVIDER=ollama
+      - PUBCAST_STUDIO_PROVIDER=ollama
+      - PUBCAST_STUDIO_MODEL=google_gemma-3-1b-it-Q4_K_L
+      - PUBCAST_ARCHITECT_PROVIDER=auto
+      - PUBCAST_ARCHITECT_MODEL=google_gemma-3-1b-it-Q6_K
+      - PUBCAST_ARCHITECT_GGUF=google_gemma-3-1b-it-Q6_K.gguf
+      - PUBCAST_ARCHITECT_RUNNER_COMMAND=llama-cli
+      - PUBCAST_ARCHITECT_REQUIRED=0
+      - PUBCAST_UNLOAD_ON_SWITCH=1
+      - PUBCAST_FALLBACK_TO_STUDIO=1
+      - PUBCAST_HOST=0.0.0.0
+      - PUBCAST_PORT=8000
+      - PUBCAST_DEBUG=0
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=google_gemma-3-1b-it-Q4_K_L
+      - OLLAMA_TIMEOUT=60
+      - OLLAMA_KEEP_ALIVE=60s
+      - OLLAMA_STREAM=0
+    volumes:
+      - pubcast-data:/app/data
+      - pubcast-assets:/app/assets
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  pubcast-data:
+  pubcast-assets:
+  ollama-models:

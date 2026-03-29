@@ -1,0 +1,23 @@
+PubCast Inspection Handoff
+Date: 2026-03-26
+
+What this bundle is:
+- A clean inspection copy of the current PubCast program state as staged from the safe working source copy.
+- It is meant for truthful review, not for marketing or overclaiming runtime readiness.
+
+What to read first:
+1. STATUS.txt
+2. MODEL_INVENTORY.txt
+3. RUNTIME_INVENTORY.txt
+4. CHANGED_FILES.txt
+5. main.py and modules/
+
+Most important current truth:
+- Studio/Ollama remains the real live bot path in code.
+- Split-role routing now exists above inference.
+- Architect is optional and currently unavailable on this machine.
+- The repo is closer to a real split-LLM design, but not yet a proven full two-model runtime.
+
+Important caution:
+- Do not describe Architect as implemented in a runtime sense unless a real GGUF prompt executes successfully on the target machine.
+- Do not describe Studio as live until Ollama responds and the configured Studio model answers a real request.

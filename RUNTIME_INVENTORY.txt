@@ -1,0 +1,30 @@
+Runtime Inventory
+Date: 2026-03-26
+
+Ollama responding:
+- No.
+- Probe result: {'alive': False, 'host': 'http://localhost:11434', 'model': 'google_gemma-3-1b-it-Q4_K_L', 'model_available': False, 'models': [], 'error': 'Connection refused'}
+
+Direct GGUF runner exists:
+- ollama CLI: NOT_FOUND
+- llama-cli: NOT_FOUND
+- llama-server: NOT_FOUND
+- Python module llama_cpp: not importable
+- Python package llama-cpp-python: NOT_INSTALLED
+
+Python version:
+- 3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 16:37:03) [MSC v.1929 64 bit (AMD64)]
+
+Known key runtime/inference packages in the inspected Python environment:
+- httpx: 0.28.1
+- pydantic: 2.10.3
+- fastapi: NOT_INSTALLED
+- uvicorn: NOT_INSTALLED
+- openai: NOT_INSTALLED
+- google-generativeai: NOT_INSTALLED
+- ollama Python package: NOT_INSTALLED
+- llama-cpp-python: NOT_INSTALLED
+
+Interpretation:
+- This environment was sufficient to inspect code, compile changed modules, and probe the split router status.
+- This environment was not sufficient to prove a full PubCast app boot or a real Architect GGUF inference run.

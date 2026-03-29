@@ -1,0 +1,41 @@
+PubCast Truthful Inspection Bundle
+Date: 2026-03-26
+
+Source folder used:
+C:\Users\hardc\OneDrive\Documents\Playground\pubcast_current_2026-03-26_auditcopy
+
+What was changed in the latest round:
+- Added centralized split-role LLM config in modules/appconfig.py.
+- Added shared Ollama helpers and health/status behavior in modules/ollama_provider.py.
+- Added split-role router/manager in modules/split_llm.py.
+- Updated modules/inference.py to route inference requests through the split manager.
+- Kept BotManager on the existing Ollama bot path while centralizing model resolution in modules/bots.py.
+- Updated main.py startup and /api/inference/generate to surface split-role status and routing inputs.
+- Updated docker-compose.yml to express Studio/Ollama and optional Architect config.
+- Updated data/bots/pete.json, data/bots/purfluous.json, and data/bots/jeremy.json so they use model=default and include the studio room.
+- Restored the missing os import in modules/bots.py after the Ollama-path cleanup.
+
+What is confirmed working:
+- The codebase contains a real live chat chain: websocket room -> Hub -> BotManager -> provider call -> Hub post_chat_message.
+- The stage UI is wired to room "studio".
+- The live bot path still uses Ollama for Studio-facing bot replies.
+- The split router exists and chooses among studio, architect, and architect_then_studio.
+- The changed Python modules compiled successfully with py_compile.
+- The router and inference status report Studio/Ollama failure and Architect unavailability without crashing the probe.
+
+What is only scaffolded:
+- Architect is implemented only as an optional external GGUF runner adapter shape.
+- architect_then_studio exists as routing behavior, but it is not fully proven on this machine because Architect cannot currently run.
+- Some optional app subsystems are guarded behind graceful imports and were not proven active in this quick bundle pass.
+
+What is broken or unavailable:
+- Ollama was not responding at http://localhost:11434 during the runtime probe. Studio is configured, but not confirmed runnable on this machine in this state.
+- No direct GGUF runner was found for Architect (no llama-cli, no llama-server, no llama_cpp Python package).
+- No GGUF files were found inside the source folder used for this build copy.
+- The larger repo materials contained google_gemma-3-1b-it-Q6_K.gguf outside this source folder, but that does not make Architect runnable in this build copy.
+- modules/byok_manager.py depends on a missing modules/bot_llm_adapter.py path and should not be treated as a healthy live path.
+- FastAPI and uvicorn were not installed in the inspected Python environment used for probing, so a full local app boot was not re-verified from that environment.
+
+Packaging note:
+- This inspection bundle was assembled from a separate staging folder.
+- No source files were altered during the packaging step itself.

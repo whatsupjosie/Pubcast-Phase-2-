@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PubCast AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0805;--surface:#12100a;--surface2:#1a1710;
+  --border:#2a2518;--brass:#d4a84b;--brass-bright:#e8c060;
+  --brass-dim:#7a5a20;--teal:#6dd6c7;--teal-dark:#004d4d;
+  --cream:#f0e8d8;--cream-dim:#8a8070;--muted:#3a3528;
+  --red:#ff3333;--green:#33cc66;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--cream);
+  font-family:'Courier Prime',monospace;
+  min-height:100vh;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 20%,#1a1510,var(--bg) 70%);
+  background-size:300px 300px,100% 100%;
+}
+
+.page{max-width:720px;margin:0 auto;padding:40px 24px 60px}
+
+/* Hero */
+.hero{text-align:center;padding:48px 0 32px}
+.hero-title{
+  font-family:'Cinzel',serif;font-size:clamp(2rem,6vw,3.2rem);font-weight:900;
+  letter-spacing:6px;color:var(--brass);
+  text-shadow:0 0 24px rgba(212,168,75,0.25);
+}
+.hero-sub{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(0.9rem,2.5vw,1.2rem);
+  font-weight:300;font-style:italic;color:var(--teal);
+  opacity:0.7;margin-top:8px;letter-spacing:1px;
+}
+.hero-line{
+  width:120px;height:1px;margin:20px auto;
+  background:linear-gradient(90deg,transparent,var(--brass),transparent);
+}
+.hero-tagline{
+  font-family:'Cormorant Garamond',serif;font-size:0.85rem;
+  color:var(--cream-dim);line-height:1.8;max-width:480px;margin:0 auto;
+}
+
+/* Status strip */
+.status-strip{
+  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;
+  padding:16px 0;margin:24px 0;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.status-item{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.7rem;letter-spacing:1px;color:var(--cream-dim);
+}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.off{background:#333}
+.dot.warn{background:var(--brass);box-shadow:0 0 4px var(--brass)}
+
+/* Room list */
+.section-label{
+  font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;
+  letter-spacing:4px;color:var(--brass-dim);text-transform:uppercase;
+  margin-bottom:12px;
+}
+.room-list{display:flex;flex-direction:column;gap:6px;margin-bottom:32px}
+.room-card{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:var(--surface);border:1px solid var(--border);
+  transition:border-color 0.2s;cursor:default;
+}
+.room-card:hover{border-color:var(--brass-dim)}
+.room-name{
+  font-family:'Cinzel',serif;font-size:0.8rem;font-weight:700;
+  color:var(--cream);letter-spacing:1px;
+}
+.room-meta{
+  font-size:0.6rem;color:var(--cream-dim);margin-top:2px;
+}
+.room-count{
+  font-family:'Cinzel',serif;font-size:1rem;font-weight:700;
+  color:var(--teal);min-width:30px;text-align:center;
+}
+.room-card.locked .room-name{color:var(--cream-dim)}
+.room-card.locked .room-count{color:var(--muted)}
+.lock-icon{font-size:0.7rem;color:var(--brass-dim)}
+
+/* Enter button */
+.enter-section{text-align:center;padding:24px 0}
+.enter-btn{
+  display:inline-block;padding:16px 48px;
+  border:2px solid var(--brass);background:rgba(212,168,75,0.06);
+  color:var(--brass);font-family:'Cinzel',serif;font-size:1rem;
+  font-weight:700;letter-spacing:4px;cursor:pointer;
+  text-decoration:none;transition:all 0.2s;
+}
+.enter-btn:hover{
+  background:rgba(212,168,75,0.12);
+  box-shadow:0 0 24px rgba(212,168,75,0.15);
+  transform:translateY(-2px);
+}
+.enter-btn:active{transform:translateY(0)}
+
+.enter-hint{
+  font-size:0.6rem;color:var(--cream-dim);margin-top:12px;
+  letter-spacing:1px;
+}
+
+/* Footer */
+.footer{
+  text-align:center;padding:32px 0 0;
+  border-top:1px solid var(--border);margin-top:40px;
+}
+.footer-motto{
+  font-family:'Cormorant Garamond',serif;font-size:1rem;
+  font-style:italic;color:var(--brass-dim);
+}
+.footer-co{
+  font-size:0.5rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-top:6px;
+}
+
+/* Mobile */
+@media(max-width:480px){
+  .page{padding:24px 16px 40px}
+  .status-strip{gap:12px}
+  .room-card{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-title">PUBCAST AI</div>
+    <div class="hero-sub">Collaborative AI-Infused Virtual Production</div>
+    <div class="hero-line"></div>
+    <div class="hero-tagline">
+      A virtual production studio where humans and AI characters create together.
+      Step inside, take a seat, and make something nobody's ever seen before.
+    </div>
+  </div>
+
+  <div class="status-strip" id="statusStrip">
+    <div class="status-item"><span class="dot off" id="dotServer"></span>SERVER</div>
+    <div class="status-item"><span class="dot off" id="dotOllama"></span>OLLAMA</div>
+    <div class="status-item"><span class="dot off" id="dotBots"></span>BOTS</div>
+    <div class="status-item"><span class="dot off" id="dotVault"></span>VAULT</div>
+  </div>
+
+  <div class="section-label">◆ Rooms ◆</div>
+  <div class="room-list" id="roomList">
+    <div class="room-card"><div><div class="room-name">Loading...</div></div></div>
+  </div>
+
+  <div class="enter-section">
+    <a href="/static/waiting_room.html" class="enter-btn">ENTER THE PUB</a>
+    <div class="enter-hint">You'll pass through the airlock first</div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-motto">Feic Mo Chroí — See My Heart</div>
+    <div class="footer-co">Rear View Foresight LLC · © 2024–2026 · All Rights Reserved</div>
+  </div>
+
+</div>
+
+<script>
+const ROOM_DISPLAY = {
+  hub:'Hub',vortex:'Vortex Bar',basement:'Basement',green_room:'Green Room',
+  writers:'Writers Room',control:'Control Room',studio:'Studio Floor',on_air:'On Air Stage'
+};
+const ROOM_DESC = {
+  hub:'The central gathering place',vortex:'The floor slowly rotates',
+  basement:'Down below',green_room:'Prepare before the show',
+  writers:'Scripts and planning',control:'The nerve center',
+  studio:'Where the magic happens',on_air:'Live performance'
+};
+const LOCKED = new Set(['on_air']);
+
+async function loadStatus() {
+  try {
+    const r = await fetch('/health');
+    const d = await r.json();
+    const s = d.systems || {};
+    document.getElementById('dotServer').className = 'dot on';
+    document.getElementById('dotOllama').className = 'dot ' + (s.inference?.worker_alive ? 'on' : 'warn');
+    document.getElementById('dotBots').className = 'dot ' + (s.bots > 0 ? 'on' : 'off');
+    document.getElementById('dotVault').className = 'dot ' + (s.vault ? 'on' : 'off');
+  } catch {
+    document.getElementById('dotServer').className = 'dot off';
+  }
+}
+
+async function loadRooms() {
+  try {
+    const r = await fetch('/api/rooms');
+    const d = await r.json();
+    const list = document.getElementById('roomList');
+    list.innerHTML = '';
+    const rooms = d.rooms || [];
+    rooms.forEach(room => {
+      const name = ROOM_DISPLAY[room.room_id] || room.display_name || room.room_id;
+      const desc = ROOM_DESC[room.room_id] || '';
+      const locked = LOCKED.has(room.room_id);
+      const count = room.participant_count || 0;
+      const card = document.createElement('div');
+      card.className = 'room-card' + (locked ? ' locked' : '');
+      card.innerHTML = `
+        <div>
+          <div class="room-name">${locked ? '<span class="lock-icon">🔒</span> ' : ''}${name}</div>
+          <div class="room-meta">${desc}</div>
+        </div>
+        <div class="room-count">${count}</div>
+      `;
+      list.appendChild(card);
+    });
+  } catch {
+    document.getElementById('roomList').innerHTML =
+      '<div class="room-card"><div><div class="room-name" style="color:var(--cream-dim)">Could not load rooms</div></div></div>';
+  }
+}
+
+loadStatus();
+loadRooms();
+setInterval(loadStatus, 10000);
+setInterval(loadRooms, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PubCast AI — Stage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;font-family:'Courier Prime',monospace;color:#e0d8c8}
+#stage-canvas{position:fixed;inset:0;z-index:0}
+
+/* Chat overlay */
+.chat-panel{
+  position:fixed;right:0;top:0;bottom:80px;width:320px;z-index:10;
+  background:rgba(12,10,9,0.85);border-left:1px solid rgba(212,168,75,0.2);
+  display:flex;flex-direction:column;
+  backdrop-filter:blur(4px);
+}
+.chat-header{
+  padding:12px 16px;border-bottom:1px solid rgba(212,168,75,0.15);
+  font-family:'Cinzel',serif;font-size:0.7rem;font-weight:700;
+  letter-spacing:3px;color:#e5c17e;text-transform:uppercase;
+}
+.chat-messages{
+  flex:1;overflow-y:auto;padding:8px 12px;font-size:0.75rem;line-height:1.5;
+}
+.chat-msg{margin-bottom:6px}
+.chat-msg .user{color:#6dd6c7;font-weight:700}
+.chat-msg .bot{color:#e5c17e;font-weight:700}
+.chat-msg .text{color:#a09888}
+.chat-input-bar{
+  display:flex;gap:4px;padding:8px;border-top:1px solid rgba(212,168,75,0.15);
+}
+.chat-input{
+  flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(212,168,75,0.2);
+  color:#e0d8c8;padding:8px 10px;font-family:'Courier Prime',monospace;font-size:0.75rem;
+  outline:none;
+}
+.chat-input:focus{border-color:#6dd6c7}
+.chat-send{
+  background:rgba(212,168,75,0.15);border:1px solid rgba(212,168,75,0.3);
+  color:#e5c17e;padding:8px 14px;cursor:pointer;font-family:'Cinzel',serif;
+  font-size:0.6rem;font-weight:700;letter-spacing:1px;
+}
+.chat-send:hover{background:rgba(212,168,75,0.25)}
+
+/* Status bar */
+.status-bar{
+  position:fixed;bottom:0;left:0;right:0;height:40px;z-index:10;
+  background:rgba(12,10,9,0.9);border-top:1px solid rgba(212,168,75,0.2);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  font-size:0.65rem;letter-spacing:1px;
+}
+.status-left{display:flex;gap:16px;align-items:center}
+.status-right{display:flex;gap:16px;align-items:center}
+.rec-indicator{display:flex;align-items:center;gap:6px;color:#ff2222}
+.rec-dot{width:8px;height:8px;border-radius:50%;background:#ff2222;display:none}
+.rec-dot.on{display:block;animation:blink .7s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.cam-indicator{color:#e5c17e}
+.room-indicator{color:#6dd6c7}
+
+/* Camera selector */
+.cam-bar{
+  position:fixed;bottom:44px;left:0;right:320px;z-index:10;
+  display:flex;justify-content:center;gap:6px;padding:6px;
+  background:rgba(12,10,9,0.8);
+}
+.cam-btn{
+  padding:6px 16px;border:1px solid rgba(212,168,75,0.2);
+  background:rgba(0,0,0,0.5);color:#a09888;
+  font-family:'Cinzel',serif;font-size:0.55rem;font-weight:700;
+  letter-spacing:1px;cursor:pointer;transition:all 0.15s;
+}
+.cam-btn:hover{border-color:#e5c17e;color:#e5c17e}
+.cam-btn.active{border-color:#ff2222;color:#ff2222;background:rgba(255,34,34,0.1)}
+.cam-btn.pvw{border-color:#22dd66;color:#22dd66;background:rgba(34,221,102,0.08)}
+
+/* Record button */
+.rec-btn{
+  padding:6px 20px;border:1px solid #ff2222;
+  background:rgba(255,34,34,0.1);color:#ff2222;
+  font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;
+  letter-spacing:2px;cursor:pointer;
+}
+.rec-btn.on{background:#ff2222;color:#fff}
+</style>
+</head>
+<body>
+
+<canvas id="stage-canvas"></canvas>
+
+<!-- Chat -->
+<div class="chat-panel">
+  <div class="chat-header">◆ LIVE CHAT ◆</div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <input class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="500">
+    <button class="chat-send" onclick="sendChat()">SEND</button>
+  </div>
+</div>
+
+<!-- Camera bar -->
+<div class="cam-bar" id="camBar"></div>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <div class="status-left">
+    <span class="rec-indicator"><span class="rec-dot" id="recDot"></span><span id="recText">STANDBY</span></span>
+    <span class="cam-indicator" id="camLabel">CAM: WIDE</span>
+    <span class="room-indicator" id="roomLabel">ROOM: STUDIO</span>
+  </div>
+  <div class="status-right">
+    <span id="timecode" style="color:#33ff99;opacity:0.5">00:00:00:00</span>
+    <button class="rec-btn" id="recBtn" onclick="toggleRecord()">● REC</button>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ═══ SCENE SETUP ═══
+const canvas = document.getElementById('stage-canvas');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0f);
+scene.fog = new THREE.FogExp2(0x0a0a0f, 0.035);
+
+// ═══ CAMERAS ═══
+const cameras = {
+  wide: new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100),
+  medium: new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100),
+  close: new THREE.PerspectiveCamera(35, window.innerWidth/window.innerHeight, 0.1, 100),
+  overhead: new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.1, 100),
+  stage: new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100),
+};
+cameras.wide.position.set(0, 2, 6);
+cameras.wide.lookAt(0, 1, 0);
+cameras.medium.position.set(2.5, 1.6, 3.5);
+cameras.medium.lookAt(0, 1.2, 0);
+cameras.close.position.set(1, 1.5, 2);
+cameras.close.lookAt(0, 1.3, 0);
+cameras.overhead.position.set(0, 6, 0);
+cameras.overhead.lookAt(0, 0, 0);
+cameras.stage.position.set(-2, 1.8, 4);
+cameras.stage.lookAt(0, 1, 0);
+
+let activeCamera = cameras.wide;
+let activeCamName = 'wide';
+
+// ═══ LIGHTING — warm studio ═══
+const ambient = new THREE.AmbientLight(0x1a1510, 0.4);
+scene.add(ambient);
+
+const keyLight = new THREE.SpotLight(0xffe4b5, 1.5, 20, Math.PI/4, 0.5, 1);
+keyLight.position.set(3, 5, 3);
+keyLight.castShadow = true;
+scene.add(keyLight);
+
+const fillLight = new THREE.PointLight(0x6dd6c7, 0.4, 15);
+fillLight.position.set(-3, 3, 2);
+scene.add(fillLight);
+
+const backLight = new THREE.SpotLight(0xe5c17e, 0.8, 15, Math.PI/3, 0.3, 1);
+backLight.position.set(0, 4, -3);
+scene.add(backLight);
+
+// Subtle floor bounce
+const bounceLight = new THREE.PointLight(0x2a1f0f, 0.2, 8);
+bounceLight.position.set(0, 0.1, 0);
+scene.add(bounceLight);
+
+// ═══ STAGE FLOOR ═══
+const floorGeo = new THREE.PlaneGeometry(12, 10);
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1510, roughness: 0.8, metalness: 0.1,
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Stage platform
+const platformGeo = new THREE.CylinderGeometry(2.5, 2.8, 0.15, 32);
+const platformMat = new THREE.MeshStandardMaterial({color: 0x2a2018, roughness: 0.6, metalness: 0.2});
+const platform = new THREE.Mesh(platformGeo, platformMat);
+platform.position.set(0, 0.075, 0);
+scene.add(platform);
+
+// ═══ AVATAR PLACEHOLDERS — ethereal glow spheres ═══
+function createAvatarPlaceholder(x, z, color, name) {
+  const group = new THREE.Group();
+
+  // Body silhouette (capsule approximation)
+  const bodyGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.2, 16);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color, transparent: true, opacity: 0.6,
+    emissive: color, emissiveIntensity: 0.3,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 1.0;
+  group.add(body);
+
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.15, 16, 16);
+  const headMat = new THREE.MeshStandardMaterial({
+    color, transparent: true, opacity: 0.7,
+    emissive: color, emissiveIntensity: 0.4,
+  });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = 1.75;
+  group.add(head);
+
+  // Glow ring at feet
+  const ringGeo = new THREE.RingGeometry(0.3, 0.5, 32);
+  const ringMat = new THREE.MeshBasicMaterial({color, transparent: true, opacity: 0.15, side: THREE.DoubleSide});
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI/2;
+  ring.position.y = 0.02;
+  group.add(ring);
+
+  group.position.set(x, 0, z);
+  group.userData = {name, color};
+  scene.add(group);
+  return group;
+}
+
+const host = createAvatarPlaceholder(0, 0, 0x4DC8FF, 'Host');
+const guest1 = createAvatarPlaceholder(-1.2, 0.5, 0xFF4DC8, 'Pete');
+const guest2 = createAvatarPlaceholder(1.2, 0.5, 0x4DFF4D, 'Purfluous');
+
+// ═══ DESK PROP ═══
+const deskGeo = new THREE.BoxGeometry(2.5, 0.8, 0.6);
+const deskMat = new THREE.MeshStandardMaterial({color: 0x3a2818, roughness: 0.7, metalness: 0.1});
+const desk = new THREE.Mesh(deskGeo, deskMat);
+desk.position.set(0, 0.4, -0.8);
+scene.add(desk);
+
+// ═══ BACK WALL ═══
+const wallGeo = new THREE.PlaneGeometry(12, 5);
+const wallMat = new THREE.MeshStandardMaterial({color: 0x0e0c08, roughness: 0.9});
+const wall = new THREE.Mesh(wallGeo, wallMat);
+wall.position.set(0, 2.5, -4);
+scene.add(wall);
+
+// ═══ ANIMATION LOOP ═══
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Gentle avatar breathing
+  [host, guest1, guest2].forEach((avatar, i) => {
+    const body = avatar.children[0];
+    body.scale.y = 1.0 + Math.sin(t * 1.5 + i * 2) * 0.02;
+    body.position.y = 1.0 + Math.sin(t * 1.2 + i) * 0.01;
+    // Glow ring pulse
+    const ring = avatar.children[2];
+    ring.material.opacity = 0.1 + Math.sin(t * 2 + i) * 0.05;
+  });
+
+  renderer.render(scene, activeCamera);
+}
+animate();
+
+// ═══ CAMERA SWITCHING ═══
+window.switchCamera = function(name) {
+  if (cameras[name]) {
+    activeCamera = cameras[name];
+    activeCamName = name;
+    document.getElementById('camLabel').textContent = 'CAM: ' + name.toUpperCase();
+    buildCamBar();
+  }
+};
+
+// ═══ RECORDING — MediaRecorder on canvas stream ═══
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+
+window.toggleRecord = function() {
+  if (isRecording) {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('recDot').classList.remove('on');
+    document.getElementById('recText').textContent = 'STOPPED';
+    document.getElementById('recBtn').classList.remove('on');
+    document.getElementById('recBtn').textContent = '● REC';
+  } else {
+    recordedChunks = [];
+    const stream = canvas.captureStream(30);
+    mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=vp9'});
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, {type: 'video/webm'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pubcast_recording_${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start(100);
+    isRecording = true;
+    document.getElementById('recDot').classList.add('on');
+    document.getElementById('recText').textContent = '● RECORDING';
+    document.getElementById('recBtn').classList.add('on');
+    document.getElementById('recBtn').textContent = '◼ STOP';
+  }
+};
+
+// ═══ CAMERA BAR ═══
+function buildCamBar() {
+  const bar = document.getElementById('camBar');
+  bar.innerHTML = '';
+  Object.keys(cameras).forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'cam-btn' + (activeCamName === name ? ' active' : '');
+    btn.textContent = name.toUpperCase();
+    btn.onclick = () => window.switchCamera(name);
+    bar.appendChild(btn);
+  });
+}
+buildCamBar();
+
+// ═══ CHAT — WebSocket ═══
+let ws = null;
+const ROOM = 'studio';
+
+function connectWS() {
+  try {
+    ws = new WebSocket(`ws://${location.host}/ws/${ROOM}`);
+    ws.onmessage = e => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'chat' && msg.payload) {
+          addChatMessage(msg.payload.user || 'Anon', msg.payload.text || '', msg.payload.user_id);
+        } else if (msg.type === 'history' && msg.payload) {
+          msg.payload.forEach(m => addChatMessage(m.user || 'Anon', m.text || '', m.user_id));
+        } else if (msg.type === 'camera_switch' && msg.payload) {
+          if (msg.payload.target === 'program') {
+            const camMap = {wide_shot:'wide',medium_shot:'medium',close_up:'close',overhead:'overhead'};
+            const mapped = camMap[msg.payload.source_id] || msg.payload.source_id;
+            if (cameras[mapped]) window.switchCamera(mapped);
+          }
+        }
+      } catch {}
+    };
+    ws.onclose = () => setTimeout(connectWS, 3000);
+  } catch {}
+}
+
+window.sendChat = function() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || !ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify({type:'chat', user:'Director', text}));
+  input.value = '';
+};
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.sendChat();
+});
+
+function addChatMessage(user, text, userId) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  const isBot = userId && userId.startsWith('bot-');
+  div.innerHTML = `<span class="${isBot?'bot':'user'}">${user}:</span> <span class="text">${text}</span>`;
+  const container = document.getElementById('chatMessages');
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ═══ KEYBOARD ═══
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  switch(e.key) {
+    case '1': window.switchCamera('wide'); break;
+    case '2': window.switchCamera('medium'); break;
+    case '3': window.switchCamera('close'); break;
+    case '4': window.switchCamera('overhead'); break;
+    case '5': window.switchCamera('stage'); break;
+    case 'r': case 'R': window.toggleRecord(); break;
+  }
+});
+
+// ═══ TIMECODE ═══
+setInterval(() => {
+  const now = new Date();
+  const tc = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}:${String(Math.floor(Math.random()*30)).padStart(2,'0')}`;
+  document.getElementById('timecode').textContent = tc;
+}, 250);
+
+// ═══ RESIZE ═══
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  Object.values(cameras).forEach(cam => {
+    cam.aspect = window.innerWidth / window.innerHeight;
+    cam.updateProjectionMatrix();
+  });
+});
+
+connectWS();
+</script>
+</body>
+</html>

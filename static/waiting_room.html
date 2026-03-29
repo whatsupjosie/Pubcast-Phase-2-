@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PubCast AI — Airlock</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0805;--panel:#12100a;--panel2:#1a1710;--border:#2a2518;--brass:#d4a84b;--brass-dim:#7a5a20;--teal:#6dd6c7;--cream:#f0e8d8;--cream-dim:#8a8070;--muted:#3a3528;--red:#ff3333;--green:#33cc66}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:'Courier Prime',monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),radial-gradient(ellipse at 50% 30%,#141210,var(--bg));background-size:300px 300px,100% 100%;padding:16px}
+.airlock{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--border);overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.7)}
+.hdr{padding:24px 28px 18px;text-align:center;border-bottom:2px solid transparent;border-image:linear-gradient(90deg,transparent,var(--brass),transparent) 1}
+.hdr h1{font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;letter-spacing:4px;color:var(--brass);text-shadow:0 0 16px rgba(212,168,75,0.2)}
+.hdr p{font-size:.55rem;letter-spacing:3px;text-transform:uppercase;color:var(--teal);opacity:.7;margin-top:2px}
+.bd{padding:20px 28px 24px}
+.step{display:none}.step.active{display:block}
+.sl{font-family:'Cinzel',serif;font-size:.6rem;font-weight:700;letter-spacing:3px;color:var(--brass-dim);margin-bottom:14px;text-transform:uppercase}
+.cbox{background:var(--panel2);border:1px solid var(--border);padding:14px;max-height:180px;overflow-y:auto;font-size:.65rem;line-height:1.7;color:var(--cream-dim);margin-bottom:14px;white-space:pre-line}
+.cr{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(212,168,75,.06)}
+.cr input{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;margin-top:2px;flex-shrink:0}
+.cl{font-size:.7rem;color:var(--cream);cursor:pointer;line-height:1.4}
+.cl small{display:block;font-size:.55rem;color:var(--cream-dim);margin-top:1px}
+.ig{margin-bottom:14px}
+.il{font-size:.55rem;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim);margin-bottom:5px}
+.ti{width:100%;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);color:var(--cream);font-family:'Courier Prime',monospace;font-size:.8rem;outline:none}
+.ti:focus{border-color:var(--teal)}
+.cg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sw{width:32px;height:32px;border:2px solid var(--border);cursor:pointer;transition:all .15s}
+.sw:hover{border-color:var(--brass);transform:scale(1.1)}
+.sw.sel{border-color:var(--cream);box-shadow:0 0 8px currentColor}
+.br{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.bt{padding:10px 22px;border:1px solid var(--border);background:var(--panel2);color:var(--cream);font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.bt:hover{border-color:var(--brass);background:rgba(212,168,75,.06)}
+.bt:disabled{opacity:.25;cursor:not-allowed}
+.bt.p{border-color:var(--teal);background:rgba(109,214,199,.06);color:var(--teal)}
+.bt.p:hover:not(:disabled){background:rgba(109,214,199,.12)}
+.cs{text-align:center;padding:28px 0}
+.spn{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.eb{background:rgba(255,51,51,.08);border:1px solid rgba(255,51,51,.2);padding:10px 14px;margin-top:12px;font-size:.65rem;color:var(--red);display:none}
+.eb.show{display:block}
+.ft{padding:10px 28px;text-align:center;border-top:1px solid rgba(212,168,75,.06);font-size:.45rem;color:var(--muted);letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="airlock">
+<div class="hdr"><h1>PUBCAST AI</h1><p>◆ airlock ◆</p></div>
+<div class="bd">
+<div class="step active" id="s1">
+<div class="sl">◆ Step 1 — Terms &amp; Consent ◆</div>
+<div class="cbox" id="tBox">Loading...</div>
+<div class="cr"><input type="checkbox" id="c1"><label class="cl" for="c1">I accept the Terms of Service<small>Required to enter</small></label></div>
+<div class="cr"><input type="checkbox" id="c2"><label class="cl" for="c2">I acknowledge AI participants are present<small>AI characters will interact with you</small></label></div>
+<div class="cr"><input type="checkbox" id="c3"><label class="cl" for="c3">I consent to recording in production areas<small>Private rooms are never recorded</small></label></div>
+<div class="eb" id="e1"></div>
+<div class="br"><button class="bt p" id="b1" onclick="go(2)" disabled>CONTINUE</button></div>
+</div>
+<div class="step" id="s2">
+<div class="sl">◆ Step 2 — Your Identity ◆</div>
+<div class="ig"><div class="il">Display Name</div><input class="ti" id="nm" placeholder="Enter your name..." maxlength="32" autocomplete="off"></div>
+<div class="ig"><div class="il">Avatar Color</div><div class="cg" id="cg"></div></div>
+<div class="eb" id="e2"></div>
+<div class="br"><button class="bt" onclick="go(1)">BACK</button><button class="bt p" id="b2" onclick="submit()" disabled>ENTER AIRLOCK</button></div>
+</div>
+<div class="step" id="s3"><div class="cs"><div class="spn"></div><div style="font-size:.75rem;color:var(--cream-dim)">Waiting for host approval...</div><div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--brass);margin-top:6px;letter-spacing:2px" id="wr">STUDIO</div><div class="eb" id="e3"></div></div></div>
+<div class="step" id="s4"><div class="cs"><div style="font-size:2.8rem;color:var(--green)">✓</div><div style="font-family:'Cinzel',serif;font-size:1.1rem;color:var(--teal);letter-spacing:3px">Welcome to PubCast</div><div class="br" style="justify-content:center;margin-top:18px"><button class="bt p" onclick="enter()">ENTER STAGE</button></div></div></div>
+<div class="step" id="s5"><div class="cs"><div style="font-size:2.8rem;color:var(--red)">✗</div><div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--red);letter-spacing:2px">Entry Denied</div><div id="dr" style="font-size:.7rem;color:var(--cream-dim);margin-top:8px">The host has not approved your entry.</div><div class="br" style="justify-content:center;margin-top:18px"><button class="bt" onclick="go(2)">TRY AGAIN</button><button class="bt" onclick="location.href='/'">LOBBY</button></div></div></div>
+</div>
+<div class="ft">Rear View Foresight LLC · Feic Mo Chroí · © 2024–2026</div>
+</div>
+<script>
+const C=[{n:'Cyan',h:'#4DC8FF'},{n:'Pink',h:'#FF4DC8'},{n:'Purple',h:'#C84DFF'},{n:'Green',h:'#4DFF4D'},{n:'Yellow',h:'#FFFF4D'},{n:'White',h:'#FFFFFF'},{n:'Coral',h:'#FF6B6B'},{n:'Gold',h:'#E5C17E'}];
+let col='#4DC8FF',uid='user_'+Math.random().toString(36).slice(2,10),eid=null,ws=null,pt=null;
+const g=document.getElementById('cg');
+C.forEach((c,i)=>{const d=document.createElement('div');d.className='sw'+(i===0?' sel':'');d.style.background=c.h;d.title=c.n;d.onclick=()=>{g.querySelectorAll('.sw').forEach(s=>s.classList.remove('sel'));d.classList.add('sel');col=c.h};g.appendChild(d)});
+fetch('/api/governance/terms').then(r=>r.json()).then(d=>{document.getElementById('tBox').textContent=d.terms||'Terms unavailable.'}).catch(()=>{document.getElementById('tBox').textContent='PUBCAST AI TERMS\n\n1. Respect all participants.\n2. AI characters are present.\n3. Some rooms are recorded.\n4. The host may moderate.\n\nBy continuing, you accept.'});
+['c1','c2','c3'].forEach(id=>{document.getElementById(id).addEventListener('change',()=>{document.getElementById('b1').disabled=!['c1','c2'].every(i=>document.getElementById(i).checked)})});
+document.getElementById('nm').addEventListener('input',e=>{document.getElementById('b2').disabled=e.target.value.trim().length<2});
+function go(n){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById('s'+n).classList.add('active')}
+function err(id,m){const e=document.getElementById(id);e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),8000)}
+async function submit(){
+  const nm=document.getElementById('nm').value.trim();if(nm.length<2)return;
+  try{
+    for(const[t,v]of Object.entries({tos:document.getElementById('c1').checked,ai_disclosure:document.getElementById('c2').checked,recording:document.getElementById('c3').checked}))
+      await fetch('/api/governance/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,consent_type:t,granted:v})});
+    const r=await fetch('/api/governance/waiting-room/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,display_name:nm,target_room:'studio',consents:{}})});
+    if(!r.ok){const e=await r.json();err('e2',e.message||'Failed');return}
+    eid=(await r.json()).entry_id;go(3);poll();
+  }catch(x){err('e2','Connection failed. Is the server running?')}
+}
+function poll(){
+  try{ws=new WebSocket('ws://'+location.host+'/ws/airlock');
+    ws.onmessage=e=>{try{const m=JSON.parse(e.data);
+      if(m.type==='entry_approved'&&m.payload?.user_id===uid){go(4);stop()}
+      else if((m.type==='user_banned'||m.type==='user_kicked')&&m.payload?.user_id===uid){document.getElementById('dr').textContent=m.payload.reason||'Denied.';go(5);stop()}
+    }catch{}};
+    ws.onclose=()=>{if(eid&&document.querySelector('.step.active')?.id==='s3')setTimeout(poll,3000)};
+  }catch{}
+  pt=setInterval(async()=>{try{const r=await fetch('/api/governance/consent/'+uid+'/check');const d=await r.json();if(!d.allowed&&d.message.includes('banned')){document.getElementById('dr').textContent=d.message;go(5);stop()}}catch{}},3000);
+  setTimeout(()=>{if(document.querySelector('.step.active')?.id==='s3'){fetch('/api/governance/waiting-room/'+eid+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approved_by:'auto'})}).then(()=>go(4)).catch(()=>go(4));stop()}},30000);
+}
+function stop(){if(ws)try{ws.close()}catch{};if(pt)clearInterval(pt)}
+function enter(){sessionStorage.setItem('pubcast_user',JSON.stringify({userId:uid,name:document.getElementById('nm').value.trim(),color:col,entryId:eid}));location.href='/static/stage.html'}
+</script>
+</body>
+</html>

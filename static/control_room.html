@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PubCast AI — Control Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#ff2222;--green:#22dd66;--brass:#e5c17e;--teal:#6dd6c7;
+  --cream:#f0e8d8;--cream-dim:#8a8070;--crt-green:#33ff99;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#060505;color:var(--cream);font-family:'Courier Prime',monospace;
+  min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+
+/* ═══ CONSOLE CONTAINER ═══ */
+.console-wrap{
+  position:relative;width:100%;max-width:1200px;
+  user-select:none;
+}
+.console-img{
+  width:100%;height:auto;display:block;
+  filter:brightness(1.05) contrast(1.05) saturate(1.1);
+}
+
+/* ═══ HOTSPOT BUTTONS ═══ */
+/* All positions are percentages relative to the image */
+.hotspot{
+  position:absolute;cursor:pointer;
+  border:none;background:transparent;
+  transition:all 0.1s ease;
+  z-index:10;
+}
+.hotspot:hover{
+  filter:brightness(1.4);
+  box-shadow:0 0 12px rgba(229,193,126,0.4);
+}
+.hotspot:active{
+  transform:scale(0.94);
+  filter:brightness(0.8);
+}
+/* Round buttons (camera switcher bank) */
+.hotspot.round{
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,rgba(255,255,255,0.12),transparent 60%);
+}
+.hotspot.round:hover{
+  background:radial-gradient(circle at 40% 35%,rgba(229,193,126,0.3),transparent 60%);
+  box-shadow:0 0 8px rgba(229,193,126,0.5);
+}
+.hotspot.round:active{
+  background:radial-gradient(circle at 50% 50%,rgba(229,193,126,0.15),transparent 70%);
+  box-shadow:0 0 4px rgba(229,193,126,0.2);
+}
+/* Active states */
+.hotspot.pgm-active{
+  box-shadow:0 0 14px rgba(255,34,34,0.6),inset 0 0 6px rgba(255,34,34,0.3);
+  background:radial-gradient(circle,rgba(255,34,34,0.25),transparent 70%);
+}
+.hotspot.pvw-active{
+  box-shadow:0 0 12px rgba(34,221,102,0.5),inset 0 0 5px rgba(34,221,102,0.2);
+  background:radial-gradient(circle,rgba(34,221,102,0.2),transparent 70%);
+}
+.hotspot.rec-active{
+  box-shadow:0 0 16px rgba(255,34,34,0.7);
+  background:radial-gradient(circle,rgba(255,34,34,0.35),transparent 60%);
+  animation:pulse-red 0.8s infinite;
+}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* Rectangular zones (transport, presets) */
+.hotspot.rect{
+  border-radius:3px;
+  background:rgba(255,255,255,0.02);
+}
+.hotspot.rect:hover{
+  background:rgba(229,193,126,0.1);
+  box-shadow:0 0 10px rgba(229,193,126,0.3);
+}
+.hotspot.rect:active{
+  transform:scale(0.96);
+}
+
+/* ═══ MONITOR OVERLAYS ═══ */
+/* These sit on top of the image monitors to show live data */
+.monitor-overlay{
+  position:absolute;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;
+  font-family:'Courier Prime',monospace;
+  text-shadow:0 0 6px currentColor;
+}
+.mon-text{
+  font-size:clamp(0.5rem,1.5vw,0.9rem);font-weight:700;opacity:0.8;
+}
+.mon-cam{
+  font-size:clamp(0.6rem,2vw,1.1rem);font-weight:700;
+  color:var(--cream);
+}
+.mon-tc{
+  font-size:clamp(0.3rem,0.8vw,0.5rem);color:var(--crt-green);opacity:0.5;
+}
+.mon-label{
+  font-family:'Cinzel',serif;font-size:clamp(0.35rem,0.8vw,0.5rem);
+  font-weight:700;letter-spacing:2px;
+  padding:1px 6px;background:rgba(0,0,0,0.6);margin-top:2px;
+}
+.mon-label.pgm{color:var(--red)}
+.mon-label.pvw{color:var(--green)}
+.mon-label.chk{color:var(--brass)}
+
+.live-tag{
+  position:absolute;z-index:20;
+  background:var(--red);color:#fff;
+  font-family:'Cinzel',serif;font-size:clamp(0.35rem,0.8vw,0.5rem);
+  font-weight:700;letter-spacing:2px;
+  padding:2px 8px;display:none;
+  animation:blink 1s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ═══ HUD OVERLAYS ═══ */
+.hud-rec{
+  position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;
+  background:rgba(0,0,0,0.85);border:2px solid var(--red);
+  padding:4px 18px;display:none;align-items:center;gap:8px;
+  font-size:clamp(0.8rem,2vw,1.2rem);font-weight:700;
+  color:var(--red);letter-spacing:3px;
+  box-shadow:0 0 20px rgba(255,34,34,0.3);
+}
+.hud-rec.on{display:flex}
+.hud-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:blink .7s infinite}
+
+/* Tooltip on hover */
+.tooltip{
+  position:absolute;z-index:50;
+  background:rgba(0,0,0,0.9);border:1px solid var(--brass);
+  color:var(--cream);font-size:0.6rem;letter-spacing:1px;
+  padding:3px 10px;white-space:nowrap;pointer-events:none;
+  display:none;font-family:'Courier Prime',monospace;
+}
+.hotspot:hover .tooltip{display:block}
+
+/* Hotkey bar */
+.hk-bar{
+  text-align:center;padding:8px;font-size:0.55rem;color:var(--cream-dim);letter-spacing:1px;
+}
+.hk{color:var(--brass);font-weight:700}
+
+/* Status readout panel — overlays the green display area on the console */
+.status-readout{
+  position:absolute;z-index:15;
+  font-size:clamp(0.35rem,0.7vw,0.5rem);
+  color:var(--crt-green);
+  text-shadow:0 0 4px var(--crt-green);
+  line-height:1.4;pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<div class="hud-rec" id="hudRec"><div class="hud-dot"></div><span id="hudTime">00:00:00</span></div>
+
+<div class="console-wrap" id="consoleWrap">
+  <!-- THE IMAGE IS THE INTERFACE -->
+  <img class="console-img" src="console_bg.png" alt="PubCast Control Console" id="consoleImg" draggable="false">
+
+  <!-- ═══ MONITOR OVERLAYS ═══ -->
+  <!-- Main center monitor (PROGRAM) -->
+  <div class="monitor-overlay" style="left:24%;top:5%;width:30%;height:35%">
+    <div class="mon-tc" id="pgmTc">00:00:00:00</div>
+    <div class="mon-cam" id="pgmCamText">CAM 1</div>
+    <div class="mon-text" id="pgmFeedText" style="color:var(--cream)">WIDE</div>
+    <div class="mon-label pgm">PROGRAM</div>
+  </div>
+  <div class="live-tag" id="liveTag" style="left:37%;top:6%">◆ LIVE ◆</div>
+
+  <!-- Right monitor (PREVIEW) -->
+  <div class="monitor-overlay" style="left:58%;top:8%;width:16%;height:22%">
+    <div class="mon-tc" id="pvwTc">00:00:00</div>
+    <div class="mon-cam" id="pvwCamText">CAM 2</div>
+    <div class="mon-label pvw">PREVIEW</div>
+  </div>
+
+  <!-- Left monitor (CHECK) -->
+  <div class="monitor-overlay" style="left:4%;top:8%;width:14%;height:20%">
+    <div class="mon-tc" id="chkTc">00:00:00</div>
+    <div class="mon-cam" id="chkCamText">CHECK</div>
+    <div class="mon-label chk">LAST CHANCE</div>
+  </div>
+
+  <!-- ═══ CAMERA SWITCHER BUTTONS — PGM ROW ═══ -->
+  <!-- Top row of brass buttons, mapped to the upper button bank -->
+  <button class="hotspot round" id="pgm1" style="left:24%;top:46%;width:4.5%;height:6%" onclick="setPGM('cam1')">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CAM 1 — WIDE</span>
+  </button>
+  <button class="hotspot round" id="pgm2" style="left:29%;top:46%;width:4.5%;height:6%" onclick="setPGM('cam2')">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CAM 2 — TWO-SHOT</span>
+  </button>
+  <button class="hotspot round" id="pgm3" style="left:34%;top:46%;width:4.5%;height:6%" onclick="setPGM('cam3')">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CAM 3 — CLOSE</span>
+  </button>
+  <button class="hotspot round" id="pgm4" style="left:39%;top:46%;width:4.5%;height:6%" onclick="setPGM('cam4')">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CAM 4 — OVERHEAD</span>
+  </button>
+  <button class="hotspot round" id="pgm5" style="left:44%;top:46%;width:4.5%;height:6%" onclick="setPGM('cam5')">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CAM 5 — STAGE</span>
+  </button>
+
+  <!-- ═══ CAMERA SWITCHER — PVW ROW ═══ -->
+  <!-- Second row below -->
+  <button class="hotspot round" id="pvw1" style="left:24%;top:53%;width:4.5%;height:6%" onclick="setPVW('cam1')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">PVW 1 — WIDE</span>
+  </button>
+  <button class="hotspot round" id="pvw2" style="left:29%;top:53%;width:4.5%;height:6%" onclick="setPVW('cam2')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">PVW 2 — TWO-SHOT</span>
+  </button>
+  <button class="hotspot round" id="pvw3" style="left:34%;top:53%;width:4.5%;height:6%" onclick="setPVW('cam3')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">PVW 3 — CLOSE</span>
+  </button>
+  <button class="hotspot round" id="pvw4" style="left:39%;top:53%;width:4.5%;height:6%" onclick="setPVW('cam4')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">PVW 4 — OVERHEAD</span>
+  </button>
+  <button class="hotspot round" id="pvw5" style="left:44%;top:53%;width:4.5%;height:6%" onclick="setPVW('cam5')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">PVW 5 — STAGE</span>
+  </button>
+
+  <!-- ═══ TRANSPORT CONTROLS ═══ -->
+  <!-- Lower center area near the green display -->
+  <button class="hotspot rect" id="tCut" style="left:32%;top:68%;width:8%;height:6%" onclick="cut()">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">CUT (SPACE)</span>
+  </button>
+  <button class="hotspot rect" id="tRec" style="left:41%;top:68%;width:6%;height:6%" onclick="toggleRec()">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">RECORD (R)</span>
+  </button>
+  <button class="hotspot rect" id="tPanic" style="left:48%;top:68%;width:8%;height:6%" onclick="panic()">
+    <span class="tooltip" style="bottom:110%;left:50%;transform:translateX(-50%)">PANIC (ESC)</span>
+  </button>
+
+  <!-- ═══ LEFT WING — Audio cluster ═══ -->
+  <button class="hotspot round" style="left:10%;top:52%;width:4%;height:5.5%" onclick="cycleAudio(0)">
+    <span class="tooltip" style="right:110%;top:50%;transform:translateY(-50%)">HOST MIC</span>
+  </button>
+  <button class="hotspot round" style="left:14.5%;top:52%;width:4%;height:5.5%" onclick="cycleAudio(1)">
+    <span class="tooltip" style="right:110%;top:50%;transform:translateY(-50%)">GUEST 1</span>
+  </button>
+  <button class="hotspot round" style="left:10%;top:58.5%;width:4%;height:5.5%" onclick="cycleAudio(2)">
+    <span class="tooltip" style="right:110%;top:50%;transform:translateY(-50%)">GUEST 2</span>
+  </button>
+  <button class="hotspot round" style="left:14.5%;top:58.5%;width:4%;height:5.5%" onclick="cycleAudio(3)">
+    <span class="tooltip" style="right:110%;top:50%;transform:translateY(-50%)">MUSIC</span>
+  </button>
+  <button class="hotspot round" style="left:12%;top:65%;width:4%;height:5.5%" onclick="muteAll()">
+    <span class="tooltip" style="right:110%;top:50%;transform:translateY(-50%)">MUTE ALL (M)</span>
+  </button>
+
+  <!-- ═══ RIGHT WING — Director modes ═══ -->
+  <button class="hotspot round" id="dAuto" style="left:56%;top:56%;width:3.5%;height:5%" onclick="setMode('auto')">
+    <span class="tooltip" style="left:110%;top:50%;transform:translateY(-50%)">AUTO</span>
+  </button>
+  <button class="hotspot round" id="dNews" style="left:60%;top:56%;width:3.5%;height:5%" onclick="setMode('news')">
+    <span class="tooltip" style="left:110%;top:50%;transform:translateY(-50%)">NEWS</span>
+  </button>
+  <button class="hotspot round" id="dDoc" style="left:56%;top:62%;width:3.5%;height:5%" onclick="setMode('documentary')">
+    <span class="tooltip" style="left:110%;top:50%;transform:translateY(-50%)">DOCUMENTARY</span>
+  </button>
+  <button class="hotspot round" id="dCine" style="left:60%;top:62%;width:3.5%;height:5%" onclick="setMode('cinematic')">
+    <span class="tooltip" style="left:110%;top:50%;transform:translateY(-50%)">CINEMATIC</span>
+  </button>
+  <button class="hotspot round" id="dMan" style="left:58%;top:68%;width:3.5%;height:5%" onclick="setMode('manual')">
+    <span class="tooltip" style="left:110%;top:50%;transform:translateY(-50%)">MANUAL</span>
+  </button>
+
+  <!-- ═══ PRESET BUTTONS — upper button bank area ═══ -->
+  <button class="hotspot round" style="left:24%;top:60%;width:4%;height:5.5%" onclick="firePreset('showOpen')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">SHOW OPEN</span>
+  </button>
+  <button class="hotspot round" style="left:29%;top:60%;width:4%;height:5.5%" onclick="firePreset('interview')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">INTERVIEW</span>
+  </button>
+  <button class="hotspot round" style="left:34%;top:60%;width:4%;height:5.5%" onclick="firePreset('wide')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">WIDE SHOT</span>
+  </button>
+  <button class="hotspot round" style="left:39%;top:60%;width:4%;height:5.5%" onclick="firePreset('showClose')">
+    <span class="tooltip" style="top:110%;left:50%;transform:translateX(-50%)">SHOW CLOSE</span>
+  </button>
+
+  <!-- ═══ STATUS READOUT — on the green display panel ═══ -->
+  <div class="status-readout" id="statusReadout" style="left:36%;top:76%;width:12%">
+    <div id="srMode">MODE: AUTO</div>
+    <div id="srCam">PGM: CAM 1</div>
+    <div id="srRec">REC: OFF</div>
+  </div>
+
+</div>
+
+<div class="hk-bar">
+  <span class="hk">1-5</span> CAMERAS · <span class="hk">SPACE</span> CUT · <span class="hk">R</span> REC · <span class="hk">ESC</span> PANIC · <span class="hk">M</span> MUTE ALL · <span class="hk">D</span> DIRECTOR
+</div>
+
+<script>
+"use strict";
+const CAMS=[
+  {id:'cam1',n:'1',l:'WIDE'},{id:'cam2',n:'2',l:'TWO-SHOT'},{id:'cam3',n:'3',l:'CLOSE'},
+  {id:'cam4',n:'4',l:'OVERHEAD'},{id:'cam5',n:'5',l:'STAGE'}
+];
+const MODES=['auto','news','documentary','cinematic','manual'];
+const MODE_BTN_MAP={auto:'dAuto',news:'dNews',documentary:'dDoc',cinematic:'dCine',manual:'dMan'};
+let pgm='cam1',pvw='cam2',isRec=false,recStart=0,mode='auto',ws=null;
+let audioMuted=[false,false,true,false,false];
+
+function updateUI(){
+  // PGM buttons
+  CAMS.forEach((c,i)=>{
+    const el=document.getElementById('pgm'+(i+1));
+    el.className='hotspot round'+(pgm===c.id?' pgm-active':'');
+  });
+  // PVW buttons
+  CAMS.forEach((c,i)=>{
+    const el=document.getElementById('pvw'+(i+1));
+    el.className='hotspot round'+(pvw===c.id?' pvw-active':'');
+  });
+  // Monitors
+  const pc=CAMS.find(c=>c.id===pgm);
+  const vc=CAMS.find(c=>c.id===pvw);
+  document.getElementById('pgmCamText').textContent=pc?'CAM '+pc.n:'BLACK';
+  document.getElementById('pgmFeedText').textContent=pc?pc.l:'BLACK';
+  document.getElementById('pvwCamText').textContent=vc?'CAM '+vc.n:'—';
+  // Director mode buttons
+  MODES.forEach(m=>{
+    const el=document.getElementById(MODE_BTN_MAP[m]);
+    if(el)el.className='hotspot round'+(mode===m?' pvw-active':'');
+  });
+  // Status readout
+  document.getElementById('srMode').textContent='MODE: '+mode.toUpperCase();
+  document.getElementById('srCam').textContent='PGM: '+(pc?'CAM '+pc.n:'BLACK');
+  document.getElementById('srRec').textContent='REC: '+(isRec?'● ON':'OFF');
+  // Rec button
+  document.getElementById('tRec').className='hotspot rect'+(isRec?' rec-active':'');
+}
+
+function setPGM(id){pgm=id;updateUI();wsSend({type:'production_state',payload:{camera:id}})}
+function setPVW(id){pvw=id;updateUI()}
+function cut(){const o=pgm;setPGM(pvw);setPVW(o)}
+function toggleRec(){
+  isRec=!isRec;
+  document.getElementById('hudRec').classList.toggle('on',isRec);
+  document.getElementById('liveTag').style.display=isRec?'block':'none';
+  if(isRec)recStart=Date.now();
+  else document.getElementById('hudTime').textContent='00:00:00';
+  updateUI();
+}
+function panic(){
+  audioMuted=[true,true,true,true,true];
+  pgm='black';updateUI();
+  wsSend({type:'production_state',payload:{camera:'black',on_air:false}});
+}
+function muteAll(){audioMuted=[true,true,true,true,true];updateUI()}
+function cycleAudio(i){audioMuted[i]=!audioMuted[i];updateUI()}
+function setMode(m){mode=m;updateUI();wsSend({type:'signal',payload:{action:'set_director_mode',mode:m}})}
+function firePreset(p){
+  ({showOpen:()=>setPGM('cam1'),interview:()=>setPGM('cam2'),
+    wide:()=>setPGM('cam1'),showClose:()=>setPGM('cam1')})[p]?.();
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  switch(e.key){
+    case'1':setPGM('cam1');break;case'2':setPGM('cam2');break;case'3':setPGM('cam3');break;
+    case'4':setPGM('cam4');break;case'5':setPGM('cam5');break;
+    case' ':e.preventDefault();cut();break;
+    case'r':case'R':toggleRec();break;
+    case'Escape':panic();break;
+    case'm':case'M':muteAll();break;
+    case'd':case'D':mode=MODES[(MODES.indexOf(mode)+1)%MODES.length];updateUI();break;
+  }
+});
+
+// Timecodes
+setInterval(()=>{
+  const now=new Date();
+  const tc=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}:${String(Math.floor(Math.random()*30)).padStart(2,'0')}`;
+  document.getElementById('pgmTc').textContent=tc;
+  document.getElementById('pvwTc').textContent=tc.slice(0,8);
+  document.getElementById('chkTc').textContent=tc.slice(0,8);
+  if(isRec){
+    const s=Math.floor((Date.now()-recStart)/1000);
+    document.getElementById('hudTime').textContent=
+      `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  }
+},250);
+
+// WebSocket
+function connectWS(){
+  try{ws=new WebSocket(`ws://${location.host}/ws/control_room`);
+    ws.onmessage=e=>{try{const m=JSON.parse(e.data);
+      if(m.type==='director_cut'&&m.data&&m.data.to_camera){setPGM(m.data.to_camera)}}catch{}};
+    ws.onclose=()=>setTimeout(connectWS,3000);
+  }catch{}
+}
+function wsSend(d){if(ws&&ws.readyState===1)ws.send(JSON.stringify(d))}
+
+updateUI();connectWS();
+</script>
+</body>
+</html>

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PubCast AI — Ecosystem Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0905;
+    --surface: #12100a;
+    --surface2: #1a1710;
+    --border: #2a2518;
+    --gold: #c9a84c;
+    --gold-dim: #7a6230;
+    --gold-bright: #e8c860;
+    --amber: #e8b45a;
+    --cyan: #4DC8FF;
+    --pink: #FF4DC8;
+    --green: #4DFF4D;
+    --purple: #C84DFF;
+    --red: #b04040;
+    --text: #e8dfc8;
+    --text-dim: #7a7060;
+    --text-muted: #3a3528;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier Prime', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  .header {
+    text-align: center;
+    padding: 48px 24px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .header .date {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  .map-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* Section titles */
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+    margin-top: 40px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--gold);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  /* System cards */
+  .systems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .system-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .system-card:hover {
+    border-color: var(--gold-dim);
+  }
+  .system-card.complete { border-left: 3px solid var(--green); }
+  .system-card.partial  { border-left: 3px solid var(--amber); }
+  .system-card.planned  { border-left: 3px solid var(--text-muted); }
+  .system-card.critical { border-left: 3px solid var(--cyan); }
+
+  .card-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gold-bright);
+  }
+  .card-status {
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .status-done  { background: rgba(77,255,77,0.12); color: var(--green); }
+  .status-wired { background: rgba(77,200,255,0.12); color: var(--cyan); }
+  .status-80    { background: rgba(232,180,90,0.12); color: var(--amber); }
+  .status-next  { background: rgba(58,53,40,0.3); color: var(--text-dim); }
+
+  .card-body {
+    padding: 12px 16px 16px;
+  }
+  .card-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .card-files {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .card-files .file {
+    color: var(--gold-dim);
+  }
+  .card-files .lines {
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  /* Connection lines */
+  .connections {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 24px;
+    margin: 32px 0;
+    font-size: 0.72rem;
+    line-height: 2;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--text-dim);
+  }
+  .connections .node { color: var(--gold); }
+  .connections .arrow { color: var(--gold-dim); }
+  .connections .label { color: var(--cyan); font-style: italic; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 24px 0;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--gold);
+  }
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+  .footer .motto {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+  .footer .company {
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+  }
+  .legend-dot.done  { background: var(--green); }
+  .legend-dot.wired { background: var(--cyan); }
+  .legend-dot.partial { background: var(--amber); }
+  .legend-dot.next  { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PubCast AI</h1>
+  <div class="subtitle">Complete Ecosystem Architecture Map</div>
+  <div class="date">Generated 2026-03-24 · Rear View Foresight LLC</div>
+</div>
+
+<div class="map-container">
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-value">18,400+</span><span class="stat-label">Lines of Code</span></div>
+    <div class="stat"><span class="stat-value">8</span><span class="stat-label">Boot Systems</span></div>
+    <div class="stat"><span class="stat-value">57</span><span class="stat-label">Skeleton Joints</span></div>
+    <div class="stat"><span class="stat-value">5</span><span class="stat-label">Director Modes</span></div>
+    <div class="stat"><span class="stat-value">7</span><span class="stat-label">Neon Colors</span></div>
+    <div class="stat"><span class="stat-value">3</span><span class="stat-label">AI Characters</span></div>
+    <div class="stat"><span class="stat-value">31</span><span class="stat-label">Tests Passing</span></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot done"></div> Production Complete</div>
+    <div class="legend-item"><div class="legend-dot wired"></div> Wired This Session</div>
+    <div class="legend-item"><div class="legend-dot partial"></div> 80% Complete</div>
+    <div class="legend-item"><div class="legend-dot next"></div> Next Phase</div>
+  </div>
+
+  <!-- Boot sequence -->
+  <div class="connections"><span class="label">main.py Boot Sequence (434 lines)</span>
+
+  <span class="node">1. Hub</span> <span class="arrow">→</span> <span class="node">2. RoomManager</span> <span class="arrow">→</span> <span class="node">3. InferenceManager</span> <span class="arrow">(Ollama)</span>
+       <span class="arrow">↓</span>
+  <span class="node">4. CricketKeeper</span> <span class="arrow">→</span> <span class="node">5. BotManager</span> <span class="arrow">←</span> <span class="label">hub.on_chat_callback</span>
+       <span class="arrow">↓</span>
+  <span class="node">6. ThinkingContext</span> <span class="arrow">←</span> <span class="label">PubCastContextAdapter(hub, bots)</span>
+       <span class="arrow">↓</span>
+  <span class="node">7. AI Director</span> <span class="arrow">←</span> <span class="label">integrate_director_with_hub()</span>
+       <span class="arrow">↓</span>
+  <span class="node">8. EtherealAvatars</span> <span class="arrow">←</span> <span class="label">create_ethereal_router()</span></div>
+
+  <!-- LAYER 1: Core Infrastructure -->
+  <div class="section-label">Layer 1</div>
+  <div class="section-title">Core Infrastructure</div>
+  <div class="systems-grid">
+
+    <div class="system-card critical">
+      <div class="card-header">
+        <span class="card-name">main.py</span>
+        <span class="card-status status-wired">wired</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Master entry point. Constructs all 8 systems in dependency order. FastAPI lifespan, WebSocket routing, REST endpoints, graceful degradation.</div>
+        <div class="card-files">
+          <span class="file">main.py</span> <span class="lines">434 lines</span><br/>
+          <span class="file">appconfig.py</span> <span class="lines">43 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Hub</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">WebSocket message router. Rooms, presence, chat broadcast, production state, JSONL logging. Async file I/O via run_in_executor.</div>
+        <div class="card-files">
+          <span class="file">hub.py</span> <span class="lines">172 lines</span><br/>
+          <span class="file">rooms.py</span> <span class="lines">225 lines</span><br/>
+          <span class="file">schemas.py</span> <span class="lines">123 lines</span><br/>
+          <span class="file">models.py</span> <span class="lines">102 lines</span><br/>
+          <span class="file">persistence.py</span> <span class="lines">~80 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Inference Manager</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Ollama local LLM connection. Health check on startup, text generation via /api/generate. Graceful fallback when Ollama not running.</div>
+        <div class="card-files">
+          <span class="file">inference.py</span> <span class="lines">46 lines</span><br/>
+          <span class="file">ollama_provider.py</span> <span class="lines">255 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Auth &amp; Security</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">JWT auth, API keys, rate limiting, audit logging with hash chains. BYOK credential management for multiple LLM providers.</div>
+        <div class="card-files">
+          <span class="file">auth.py</span> <span class="lines">112 lines</span><br/>
+          <span class="file">credentials.py</span> <span class="lines">~200 lines</span><br/>
+          <span class="file">byok_manager.py</span> <span class="lines">~300 lines</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 2: AI Intelligence -->
+  <div class="section-label">Layer 2</div>
+  <div class="section-title">AI Intelligence</div>
+  <div class="systems-grid">
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Bot Manager</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">AI co-host lifecycle. OpenAI, Gemini, and Ollama providers. Auto-reply, mention-only, shadow presence. Cricket memory integration. Nudge support for Jeremy whispers.</div>
+        <div class="card-files">
+          <span class="file">bots.py</span> <span class="lines">371 lines</span><br/>
+          <span class="file">data/bots/pete.json</span><br/>
+          <span class="file">data/bots/purfluous.json</span><br/>
+          <span class="file">data/bots/jeremy.json</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Jeremy Cricket</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Per-character SQLite memory. Remembers conversations, facts, preferences. Enriches context before LLM calls. CricketKeeper registry manages one Cricket per character.</div>
+        <div class="card-files">
+          <span class="file">jeremy_cricket.py</span> <span class="lines">~800 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Thinking Context</span>
+        <span class="card-status status-done">finished</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Portable memory package. Jeremy conductor watches rooms, calculates drama necessity via sigmoid curves, whispers stage directions to bots. Two-method adapter interface.</div>
+        <div class="card-files">
+          <span class="file">thinking_context/__init__.py</span> <span class="lines">104 lines</span><br/>
+          <span class="file">thinking_context/jeremy.py</span> <span class="lines">800 lines</span><br/>
+          <span class="file">thinking_context/memory.py</span> <span class="lines">237 lines</span><br/>
+          <span class="file">thinking_context/mount.py</span> <span class="lines">280 lines</span><br/>
+          <span class="file">thinking_context/sqlite_backend.py</span> <span class="lines">352 lines</span><br/>
+          <span class="file">+ nudge_queue, circuit_breaker, protocols</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">AI Director</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Cinematic camera intelligence. 5 modes (Auto/News/Documentary/Cinematic/Manual). Shot scoring: quality, speaker tracking, rule-of-thirds, variety. WebSocket live feed of every decision with reasoning.</div>
+        <div class="card-files">
+          <span class="file">ai_director.py</span> <span class="lines">601 lines</span><br/>
+          <span class="file">ai_director_routes.py</span> <span class="lines">231 lines</span><br/>
+          <span class="file">director.html</span> <span class="lines">736 lines</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 3: Avatar & World -->
+  <div class="section-label">Layer 3</div>
+  <div class="section-title">Avatar &amp; World</div>
+  <div class="systems-grid">
+
+    <div class="system-card critical">
+      <div class="card-header">
+        <span class="card-name">Ethereal Avatar System</span>
+        <span class="card-status status-wired">wired</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">57-joint skeleton. Ethereal neon skins (7 colors). Energy flow, gesture amplification, mood aura. Faceless communication through body language. Export to Blender/Maya/Unreal/Unity.</div>
+        <div class="card-files">
+          <span class="file">ethereal_avatars.py</span> <span class="lines">453 lines (integration)</span><br/>
+          <span class="file">avatar_skeleton_system.py</span> <span class="lines">316 lines</span><br/>
+          <span class="file">ethereal_skin_system_CORRECTED.py</span> <span class="lines">501 lines</span><br/>
+          <span class="file">ethereal_skin_shader_system_CORRECTED.js</span> <span class="lines">520 lines</span><br/>
+          <span class="file">ethereal_avatar_generator.py</span> <span class="lines">468 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Avatar Motion</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Swing-twist decomposition, procedural idle breathing, animation layer blending (idle/base/mocap). Dropout fade, confidence-weighted mocap.</div>
+        <div class="card-files">
+          <span class="file">avatar_system_raw.py</span> <span class="lines">~600 lines</span><br/>
+          <span class="file">avatar_performer.py</span> <span class="lines">~500 lines</span><br/>
+          <span class="file">avatar.py</span> <span class="lines">~220 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Rust Animation Engine</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Native performance skeleton, animation state machine, WebSocket renderer bridge. Compiled to WASM for browser deployment.</div>
+        <div class="card-files">
+          <span class="file">lib.rs, skeleton.rs</span><br/>
+          <span class="file">ws_renderer.rs</span><br/>
+          <span class="file">avatar_animation_system.rs</span><br/>
+          <span class="file">avatar_fitting_system.rs</span><br/>
+          <span class="file">complete_animation_controller.rs</span><br/>
+          <span class="file">animation_data_library.rs</span><br/>
+          <span class="lines">~3,000 lines total</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Voxel Bridge</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Triple-path transport: Shared Memory (10μs) → TCP (1ms) → File System (50ms). Circuit breaker, IRM, camera sequencing. Connects Python to C++ rendering.</div>
+        <div class="card-files">
+          <span class="file">NEW_MERGED_bridge3626_811.py</span> <span class="lines">1,203 lines</span><br/>
+          <span class="file">pubworld_blocks.py</span> <span class="lines">643 lines</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 4: Studio & Production -->
+  <div class="section-label">Layer 4</div>
+  <div class="section-title">Studio &amp; Production</div>
+  <div class="systems-grid">
+
+    <div class="system-card partial">
+      <div class="card-header">
+        <span class="card-name">Studio Control Room</span>
+        <span class="card-status status-80">80%</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Audio matrix (5 channels), preflight countdown, dead man's switch auto-save, emergency protocols. Pete integration TODOs remain.</div>
+        <div class="card-files">
+          <span class="file">studio_control.py</span> <span class="lines">~400 lines</span><br/>
+          <span class="file">studio_control_room.html</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Unity Bridge</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">C# WebSocket client for Unity. State sync, event routing, Interactable system, Jukebox, StageShowController, BarkDoor.</div>
+        <div class="card-files">
+          <span class="file">PubCastBridge.cs</span><br/>
+          <span class="file">EventBus.cs, WorldBrain.cs</span><br/>
+          <span class="file">Interactable.cs, Jukebox.cs</span><br/>
+          <span class="lines">~1,200 lines total</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Production Hardened</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Enterprise FastAPI with Prometheus metrics, structured logging, JWT auth, rate limiting. 32 critical bugs fixed.</div>
+        <div class="card-files">
+          <span class="file">production_hardened_pubcast.py</span> <span class="lines">642 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">FPR Toolchain</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Functional Purpose Report system. Auto-scans code, drafts alignment reports. Desktop GUI + batch file launcher. JSON schema validated.</div>
+        <div class="card-files">
+          <span class="file">fpr_autogen.py</span><br/>
+          <span class="file">fpr_desktop_tool.py</span><br/>
+          <span class="file">functional_purpose_report.schema.json</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 5: Safety & Tools -->
+  <div class="section-label">Layer 5</div>
+  <div class="section-title">Safety &amp; Tools</div>
+  <div class="systems-grid">
+
+    <div class="system-card planned">
+      <div class="card-header">
+        <span class="card-name">Iteration Wallet</span>
+        <span class="card-status status-next">next</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Version preservation. Vault/Cradle/Archive with confirmation gates (OPEN/DELETE). Prevents accidental destruction. USB protection via marker files.</div>
+        <div class="card-files">
+          <span class="file">IW_interface.html</span> <span class="lines">665 lines (UI)</span><br/>
+          <span class="file">iteration_wallet.db</span> <span class="lines">(SQLite)</span><br/>
+          <span class="file">iteration_wallet_workflow.md</span><br/>
+          <span class="file">iteration_wallet_ai_build_instructions.md</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card planned">
+      <div class="card-header">
+        <span class="card-name">Oubliette</span>
+        <span class="card-status status-next">next</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">OS-level code isolation. Windows: Restricted Tokens + Job Objects ("Iron Wall"). macOS: Seatbelt/SBPL ("Glass Fortress"). Python audit hooks for defense-in-depth.</div>
+        <div class="card-files">
+          <span class="file">Oubliette_v1.7.1_spec.docx</span> <span class="lines">(47 references)</span><br/>
+          <span class="lines">Core logic needs implementation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Code Collector</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Electron tray app + browser extension. Captures code from AI chats with context enrichment. OS bridge for paid tier. 31 tests passing.</div>
+        <div class="card-files">
+          <span class="file">main.js</span> <span class="lines">944 lines</span><br/>
+          <span class="file">extension/</span> <span class="lines">6 files, 878 lines</span><br/>
+          <span class="file">collector_bridge.py</span> <span class="lines">484 lines</span><br/>
+          <span class="file">extractors/conversation.py</span> <span class="lines">452 lines</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-card complete">
+      <div class="card-header">
+        <span class="card-name">Conversation Memory</span>
+        <span class="card-status status-done">done</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">Session summaries from AI chats. Extracts files touched, decisions, breaks, builds, next steps. Feeds context to next session automatically.</div>
+        <div class="card-files">
+          <span class="file">conversation.py</span> <span class="lines">452 lines</span><br/>
+          <span class="file">conversation_server.py</span> <span class="lines">91 lines</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The World Map -->
+  <div class="section-label">The World</div>
+  <div class="section-title">PubWorld Room Layout</div>
+  <div class="connections"><span class="label">"The room stays the same. The window keeps changing."</span>
+
+                         <span class="node">[LOBBY]</span>
+                    <span class="label">(abandoned theater, heals as creators arrive)</span>
+                            <span class="arrow">|</span>
+                        <span class="node">[HALLWAY]</span>
+                       <span class="arrow">/</span>          <span class="arrow">\</span>
+            <span class="node">[WRITERS ROOM]</span>    <span class="node">[GREEN ROOM]</span> <span class="label">← hub, all doors visible</span>
+                            <span class="arrow">|</span>       <span class="arrow">|</span>        <span class="arrow">|</span>         <span class="arrow">|</span>
+                     <span class="node">[DRESSING]</span> <span class="node">[WRITERS]</span> <span class="node">[STUDIO]</span> <span class="node">[CONTROL]</span>
+                     <span class="label">private</span>   <span class="label">scripts</span>  <span class="label">stage</span>    <span class="label">nerve center</span>
+
+                     <span class="node">[VORTEX BAR]</span> <span class="label">← the floor slowly rotates</span>
+                     <span class="node">[PALACE THEATER]</span> <span class="label">← locked, gold light under door</span>
+
+  <span class="label">Spawn: DRESSING ROOM (private per user)</span>
+  <span class="label">Navigation: 2.5D side-scroll, E to enter doors</span></div>
+
+  <!-- Characters -->
+  <div class="section-label">The Cast</div>
+  <div class="section-title">AI Characters</div>
+  <div class="systems-grid">
+    <div class="system-card complete">
+      <div class="card-header"><span class="card-name">Pete</span><span class="card-status status-done">auto-reply</span></div>
+      <div class="card-body"><div class="card-desc">The laid-back director. Calls everyone "pal" or "chief." Always has a story. Keeps conversation flowing. Provider: Ollama/Mistral.</div></div>
+    </div>
+    <div class="system-card complete">
+      <div class="card-header"><span class="card-name">Sir Purfluous</span><span class="card-status status-done">mention-only</span></div>
+      <div class="card-body"><div class="card-desc">Kinematic integrity monitor. Formal British diction. Observes everything. Reports anomalies with grace. Never rude, always precise.</div></div>
+    </div>
+    <div class="system-card complete">
+      <div class="card-header"><span class="card-name">Jeremy Cricket</span><span class="card-status status-done">shadow</span></div>
+      <div class="card-body"><div class="card-desc">Memory keeper and conversation conductor. Works behind the scenes. Brief, warm, insightful. Remembers everything. Whispers stage directions to other bots.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="motto">Feic Mo Chroí — See My Heart</div>
+  <div class="company">Rear View Foresight LLC · © 2024–2025 Josie Curtsey Cobbley · All Rights Reserved</div>
+</div>
+
+</body>
+</html>

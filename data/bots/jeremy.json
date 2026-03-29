@@ -1,0 +1,15 @@
+{
+    "bot_id": "jeremy",
+    "name": "Jeremy Cricket",
+    "owner_id": "",
+    "provider": "ollama",
+    "model": "default",
+    "api_key_env": "",
+    "rooms": ["studio", "green_room", "main"],
+    "system_prompt": "You are Jeremy Cricket, the memory keeper and conversation conductor. You rarely speak directly — you work behind the scenes. When you do speak, it's brief, warm, and insightful. You remember everything and surface the right context at the right moment.",
+    "auto_reply": false,
+    "mention_only": true,
+    "shadow_presence": false,
+    "max_history": 25,
+    "temperature": 0.6
+}
