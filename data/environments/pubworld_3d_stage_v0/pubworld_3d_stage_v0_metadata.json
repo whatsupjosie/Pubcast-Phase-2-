@@ -1,0 +1,78 @@
+{
+  "environment_id": "pubworld_3d_stage_v0",
+  "name": "Pubcast AI 3D Studio Stage v0",
+  "type": "3d_studio_stage",
+  "description": "Contained Pubcast AI movie-studio stage environment: a giant black-box soundstage connected to a bounded exterior backlot/parking lot, with a raised Control Room 2 booth and stair/door transition back to the 2.5D Bellamy Pop studio/control room.",
+  "asset_files": {
+    "scene_definition": "data/environments/pubworld_3d_stage_v0/pubworld_3d_stage_v0.scene.json",
+    "preview_page": "static/stage.html",
+    "preview_builder_module": "static/js/pubworld_3d_stage_v0.js"
+  },
+  "areas": {
+    "interior_soundstage": {
+      "name": "Interior Soundstage / Hangar",
+      "description": "Large rectangular black-box movie soundstage with concrete floor, dark acoustic walls, ceiling grid, work lights, yellow safety lanes, clear center filming/build area, and large hangar opening to the exterior backlot.",
+      "bounds": { "min": [-30, -22, 0], "max": [30, 22, 18] }
+    },
+    "exterior_backlot": {
+      "name": "Exterior Backlot / Parking Lot",
+      "description": "Bounded exterior parking/backlot plane connected to the soundstage hangar opening. No city or open-world neighborhood is modeled beyond the fence.",
+      "bounds": { "min": [-38, 22, 0], "max": [38, 72, 10] }
+    },
+    "control_room_2": {
+      "name": "Control Room 2 Raised Booth",
+      "description": "Physical raised booth inside the 3D soundstage. It is an in-world access point to shared Pubcast controls, not a duplicate control system.",
+      "bounds": { "min": [-28, -18, 4], "max": [-17, -8, 10] },
+      "integration_status": "awaiting shared Pubcast controls integration"
+    },
+    "exit_to_2_5d_bellamy_pop": {
+      "name": "Door to 2.5D Bellamy Pop Studio / Control Room",
+      "description": "Door/portal marker at the top of the Control Room 2 stairs. This represents transition back to the existing 2.5D Bellamy Pop studio/control room. No 2.5D art or zone placement is included here.",
+      "integration_status": "marker only; routing awaiting integration"
+    }
+  },
+  "spawn_points": {
+    "avatar_spawn_center_stage": { "position": [0, 0, 0], "rotation_y_degrees": 180, "area": "interior_soundstage" },
+    "avatar_spawn_control_room_2": { "position": [-22.5, -13, 6.1], "rotation_y_degrees": 90, "area": "control_room_2" },
+    "avatar_spawn_top_of_control_room_stairs": { "position": [-18.5, -8, 4.5], "rotation_y_degrees": 180, "area": "control_room_2" },
+    "avatar_spawn_backlot": { "position": [0, 45, 0], "rotation_y_degrees": 180, "area": "exterior_backlot" }
+  },
+  "camera_points": {
+    "camera_1_default_stage_wide": { "position": [0, -30, 11], "look_at": [0, 0, 3], "fov": 55, "area": "interior_soundstage" },
+    "camera_2_stage_mid": { "position": [12, -13, 6], "look_at": [0, 0, 2.2], "fov": 48, "area": "interior_soundstage" },
+    "camera_3_backlot_wide": { "position": [0, 74, 13], "look_at": [0, 38, 2], "fov": 58, "area": "exterior_backlot" },
+    "camera_4_control_room_stair_view": { "position": [-6, -13, 7], "look_at": [-22, -10, 5], "fov": 45, "area": "control_room_2" }
+  },
+  "lighting_points": {
+    "overhead_stage_key": { "position": [-8, -5, 15], "type": "area_worklight", "area": "interior_soundstage" },
+    "overhead_stage_fill": { "position": [10, 6, 14], "type": "area_worklight", "area": "interior_soundstage" },
+    "overhead_stage_grid_worklights": { "position": [0, 0, 17], "type": "grid_worklights", "area": "interior_soundstage" },
+    "backlot_sun_or_worklight": { "position": [-15, 58, 16], "type": "backlot_worklight", "area": "exterior_backlot" },
+    "control_room_practical": { "position": [-22.5, -13, 8.8], "type": "practical", "area": "control_room_2" }
+  },
+  "build_zones": {
+    "soundstage_main_build_area": { "bounds": { "min": [-18, -12, 0], "max": [18, 12, 12] }, "description": "Primary interior filming/build area." },
+    "backlot_main_build_area": { "bounds": { "min": [-24, 32, 0], "max": [24, 62, 10] }, "description": "Primary exterior backlot build area." },
+    "future_water_tank_zone": { "bounds": { "min": [18, 48, 0], "max": [34, 66, 5] }, "description": "Reserved future water tank or ocean illusion zone." },
+    "future_facade_zone": { "bounds": { "min": [-34, 35, 0], "max": [-22, 62, 10] }, "description": "Reserved future facade placement zone." },
+    "future_backdrop_zone": { "bounds": { "min": [-30, 64, 0], "max": [30, 70, 14] }, "description": "Reserved future backdrop/cyclorama zone." }
+  },
+  "transition_markers": {
+    "transition_control_room_2_to_bellamy_pop_2_5d": { "position": [-18.5, -8, 4.5], "target": "bellamy_pop_2_5d_control_room", "description": "Door at the top of the Control Room 2 stairs leading back to the existing 2.5D Bellamy Pop studio/control room." },
+    "transition_soundstage_to_backlot": { "position": [0, 22.5, 0], "target": "exterior_backlot", "description": "Interior side of the large hangar opening." },
+    "transition_backlot_to_soundstage": { "position": [0, 25.5, 0], "target": "interior_soundstage", "description": "Exterior side of the large hangar opening leading back into the soundstage." }
+  },
+  "coordinate_system_notes": "Three.js-compatible right-handed stage coordinates: X left/right, Y up, Z depth. Metadata position arrays are [x, z, y] for renderer conversion notes in the preview builder; scene JSON primitives store explicit Three.js positions as [x, y, z].",
+  "scale_notes": "Approximate working scale: 1 unit = 1 meter. Interior soundstage is roughly 60m wide, 44m deep, and 18m high. Exterior backlot extends about 50m beyond the hangar opening. Control Room 2 is raised roughly 4.5m above the soundstage floor.",
+  "integration_notes": [
+    "Control Room 2 is physical access only; it does not duplicate camera, recorder, lighting, console, audio, or session state.",
+    "The Bellamy Pop 2.5D transition is a marker only and should be wired into existing Pubcast routing later.",
+    "The hangar/backlot transitions are markers only and should be wired into Pubcast navigation later.",
+    "The existing /static/stage.html preview now builds this environment directly with Three.js while preserving chat, camera switching, and canvas recording patterns from the previous stage page."
+  ],
+  "known_blockers": [
+    "No final manual console hotspots are placed in this task.",
+    "No final 2.5D Bellamy Pop artwork or zones are changed in this task.",
+    "Cameras/recording/audio are preview/browser-level only until Pubcast core systems consume the metadata."
+  ]
+}
